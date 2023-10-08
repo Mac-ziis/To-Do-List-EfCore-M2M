@@ -21,7 +21,7 @@ namespace ToDoList.Controllers
       return View(_db.Tags.ToList());
     }
 
-     public ActionResult Details(int id)
+    public ActionResult Details(int id)
     {
       Tag thisTag = _db.Tags
           .Include(tag => tag.JoinEntities)
@@ -53,9 +53,9 @@ namespace ToDoList.Controllers
     [HttpPost]
     public ActionResult AddItem(Tag tag, int itemId)
     {
-      #nullable enable
+#nullable enable
       ItemTag? joinEntity = _db.ItemTags.FirstOrDefault(join => (join.ItemId == itemId && join.TagId == tag.TagId));
-      #nullable disable
+#nullable disable
       if (joinEntity == null && itemId != 0)
       {
         _db.ItemTags.Add(new ItemTag() { ItemId = itemId, TagId = tag.TagId });
@@ -63,5 +63,44 @@ namespace ToDoList.Controllers
       }
       return RedirectToAction("Details", new { id = tag.TagId });
     }
+
+    public ActionResult Edit(int id)
+    {
+      Tag thisTag = _db.Tags.FirstOrDefault(tags => tags.TagId == id);
+      return View(thisTag);
+    }
+
+    [HttpPost]
+    public ActionResult Edit(Tag tag)
+    {
+      _db.Tags.Update(tag);
+      _db.SaveChanges();
+      return RedirectToAction("Index");
+    }
+
+    public ActionResult Delete(int id)
+    {
+      Tag thisTag = _db.Tags.FirstOrDefault(tags => tags.TagId == id);
+      return View(thisTag);
+    }
+
+    [HttpPost, ActionName("Delete")]
+    public ActionResult DeleteConfirmed(int id)
+    {
+      Tag thisTag = _db.Tags.FirstOrDefault(tags => tags.TagId == id);
+      _db.Tags.Remove(thisTag);
+      _db.SaveChanges();
+      return RedirectToAction("Index");
+    }
+
+     [HttpPost]
+    public ActionResult DeleteJoin(int joinId)
+    {
+      ItemTag joinEntry = _db.ItemTags.FirstOrDefault(entry => entry.ItemTagId == joinId);
+      _db.ItemTags.Remove(joinEntry);
+      _db.SaveChanges();
+      return RedirectToAction("Index");
+    }
+
   }
 }
