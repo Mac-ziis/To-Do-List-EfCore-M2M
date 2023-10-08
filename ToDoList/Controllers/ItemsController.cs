@@ -1,8 +1,9 @@
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using ToDoList.Models;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
 
 namespace ToDoList.Controllers
 {
@@ -18,13 +19,14 @@ namespace ToDoList.Controllers
     public ActionResult Index()
     {
       List<Item> model = _db.Items
-                          .Include(item => item.Category)
-                          .ToList();
+                            .Include(item => item.Category)
+                            .ToList();
       return View(model);
     }
 
     public ActionResult Create()
     {
+      ViewBag.CategoryId = new SelectList(_db.Categories, "CategoryId", "Name");
       return View();
     }
 
@@ -53,6 +55,7 @@ namespace ToDoList.Controllers
     public ActionResult Edit(int id)
     {
       Item thisItem = _db.Items.FirstOrDefault(item => item.ItemId == id);
+      ViewBag.CategoryId = new SelectList(_db.Categories, "CategoryId", "Name");
       return View(thisItem);
     }
 
@@ -60,6 +63,21 @@ namespace ToDoList.Controllers
     public ActionResult Edit(Item item)
     {
       _db.Items.Update(item);
+      _db.SaveChanges();
+      return RedirectToAction("Index");
+    }
+
+    public ActionResult Delete(int id)
+    {
+      Item thisItem = _db.Items.FirstOrDefault(item => item.ItemId == id);
+      return View(thisItem);
+    }
+
+    [HttpPost, ActionName("Delete")]
+    public ActionResult DeleteConfirmed(int id)
+    {
+      Item thisItem = _db.Items.FirstOrDefault(item => item.ItemId == id);
+      _db.Items.Remove(thisItem);
       _db.SaveChanges();
       return RedirectToAction("Index");
     }
@@ -83,22 +101,7 @@ namespace ToDoList.Controllers
         _db.SaveChanges();
       }
       return RedirectToAction("Details", new { id = item.ItemId });
-    }  
-
-    public ActionResult Delete(int id)
-    {
-      Item thisItem = _db.Items.FirstOrDefault(item => item.ItemId == id);
-      return View(thisItem);
-    }
-
-    [HttpPost, ActionName("Delete")]
-    public ActionResult DeleteConfirmed(int id)
-    {
-      Item thisItem = _db.Items.FirstOrDefault(item => item.ItemId == id);
-      _db.Items.Remove(thisItem);
-      _db.SaveChanges();
-      return RedirectToAction("Index");
-    }
+    }   
 
     [HttpPost]
     public ActionResult DeleteJoin(int joinId)
@@ -107,6 +110,6 @@ namespace ToDoList.Controllers
       _db.ItemTags.Remove(joinEntry);
       _db.SaveChanges();
       return RedirectToAction("Index");
-    }
+    } 
   }
 }
